@@ -21,3 +21,4 @@ maximumTemps = data(:,7);
 % these may be useful later
 multiplicationTimes = data(:,8);
 infectiousTimes = data(:,9);
+

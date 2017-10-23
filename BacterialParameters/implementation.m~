@@ -1,0 +1,17 @@
+%% implementation
+clear all;
+close all;
+clc;
+
+df = bacterialReader('BacterialParameterDataExample.xlsx');
+
+measuredTemps = df(:,3);
+measuredMus = df(:,4);
+minimumTemps = df(1,6);
+maximumTemps = df(1,7);
+
+figure;
+plot(measuredTemps,measuredMus);
+
+figure;
+[b,c] = fitTemperature(minimumTemps,maximumTemps,measuredTemps
