@@ -1,64 +1,37 @@
-%% implementation
-clear all;
-close all;
-clc;
-
-tempMin = -1.5+273;
-tempMax = 44+273;
-tempOpt = 33.5+273;
-mu = 0.22;
-
-
-[b,c] = fitTemperature(tempMin,tempMax,tempOpt,mu,1);
-
-f = @(temp) growthRate(temp,tempMin,tempMax,b,c);
-
-fplot(f,[tempMin,tempMax])
-
-temperature = @(t) 50 - 60 * exp(-t) + 273;
-
-exampleRate = @(t) f(temperature(t));
-
-figure;
-fplot(temperature,[0,10])
-figure;
-fplot(exampleRate,[0,3])
-
-dxdt = @(t,x) 4*exampleRate(t) .* x .* (1-x);
-
-[t,x] = ode15s(dxdt,[0,10],0.01);
-
-figure;
-plot(t,x)
-
 %% Full implementation
+close all;
+clear all;
 
-% file name to be changed
-dataframe = bacterialReader('BacterialParameterDataExample.xlsx');
+names = ["listera","salmonella"];
 
-% species names to be changed
-species = ['species1','species2','species3'];
+params = [-1.5 + 273, 44 + 273, 33.5 + 273, 0.22;...
+    6 + 273, 46 + 273, 37 + 273, 0.37];
 
-for s = 1:length(species)
-    name = species(s);                  % name
-    infecDose = dataframe(s,2);         % get infectious dose
-    saturPop = dataframe(s,3);          % saturation population
-    tempOpt = dataframe(s,4);           % optimal temperature
-    muOpt = dataframe(s,5);             % mu at optimal temperature
-    lambda = dataframe(s,6);            % lag time
-    tempMin = dataframe(s,7);           % minimum viable temperature
-    tempMax = dataframe(s,8);           % maximum viable temperature
-    
-    initPop = 1;                        % initial population
-    
-    maxRadius = 1;                      % radius of spherical food
-    
-    % calculate b and c for the growth rate
-    [b,c] = fitTemperature(tempMin,tempMax,tempOpt,muOpt,1);
-    
-    temperatureParameters = [tempMin,tempMax,b,c];
-    
-    detadt = @(t,eta) bacterialGrowth(t,eta,sat
-    
+curve = [0.02,0.02,0.06,0.11,0.13,0.22;...
+    0.06,0.05,0.12,0.16,0.31,0.37];
+temps = [7,10,15,20,25,30] + 273;
+
+c0 = 1;
+bcOrig = zeros(2,2);
+bcCurv = zeros(2,2);
+
+for i = 1:length(names)
+    param = params(i,:);
+    [b,c] = fitTemperature(param(1), param(2), param(3), param(4), c0);
+    bcOrig(i,:) = [b,c];
+    [b,c] = curveFitTemperature(temps,curve(i,:),param(1),param(2));
+    bcCurv(i,:) = [b,c];
 end
 
+bcOrig
+figure;
+fplot(@(temp)growthRate(temp,params(1,1),params(1,2),bcOrig(1,1),bcOrig(1,2)))
+hold on
+plot(params(1,3),params(1,4),'*');
+hold off
+
+bcCurv
+figure;
+fplot(@(temp)growthRate(temp,params(1,1),params(1,2),bcCurv(1,1),bcOrig(1,2)))
+plot(params(1,3),params(1,4),'*')
+hold off
